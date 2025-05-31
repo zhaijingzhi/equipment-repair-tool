@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>综合装备维修计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: white;
+            color: #4CAF50;
+            border-bottom: 3px solid #4CAF50;
+        }
+
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="number"], input[type="text"], select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        input.error, select.error {
+            border-color: #f44336;
+            box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .results {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 30px;
+            display: none;
+            border: 2px solid #e9ecef;
+        }
+
+        .results h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .result-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+
+        .repair-packages {
+            margin-top: 20px;
+        }
+
+        .repair-packages h4 {
+            margin-bottom: 15px;
+            color: #555;
+            font-size: 16px;
+        }
+
+        .package-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            background: #f1f3f4;
+            border-radius: 6px;
+            border-left: 3px solid #666;
+        }
+
+        .package-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .package-consumption {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+
+        .error-result {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                border-bottom: 1px solid #e9ecef;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>综合装备维修计算器</h1>
+            <p>本程序由B站繁星攻略组制作</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)">维修包效率计算</button>
+            <button class="tab" onclick="switchTab(1)">装备类型计算</button>
+            <button class="tab" onclick="switchTab(2)">高级精确计算</button>
+        </div>
+
+        <!-- Tab 1: 维修包效率计算 -->
+        <div class="tab-content active" id="tab1">
+            <form id="calculatorForm1">
+                <div class="form-grid">
+                    <div class="form-section">
+                        <h3>基础参数</h3>
+                        <div class="input-group">
+                            <label for="initialMax1">初始上限 (1-150整数)</label>
+                            <input type="number" id="initialMax1" min="1" max="150" step="1" placeholder="例如: 100">
+                            <div class="error-message" id="initialMax1Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="currentMax1">当前上限 (一位小数)</label>
+                            <input type="number" id="currentMax1" step="0.1" placeholder="例如: 95.5">
+                            <div class="error-message" id="currentMax1Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="remainingDurability1">剩余耐久 (一位小数)</label>
+                            <input type="number" id="remainingDurability1" step="0.1" placeholder="例如: 80.3">
+                            <div class="error-message" id="remainingDurability1Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="repairLoss1">维修损耗 (0.01-0.20, 两位小数)</label>
+                            <input type="number" id="repairLoss1" min="0.01" max="0.20" step="0.01" placeholder="例如: 0.05">
+                            <div class="error-message" id="repairLoss1Error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>维修包效率</h3>
+                        <div class="input-group">
+                            <label for="selfMade1">自制维修包 (0.01-10, 两位小数或?)</label>
+                            <input type="text" id="selfMade1" placeholder="例如: 1.50 或 ?">
+                            <div class="error-message" id="selfMade1Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="standard1">标准维修包 (0.01-10, 两位小数或?)</label>
+                            <input type="text" id="standard1" placeholder="例如: 2.00 或 ?">
+                            <div class="error-message" id="standard1Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="precision1">精密维修包 (0.01-10, 两位小数或?)</label>
+                            <input type="text" id="precision1" placeholder="例如: 3.25 或 ?">
+                            <div class="error-message" id="precision1Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="advanced1">高级维修组合 (0.01-10, 两位小数或?)</label>
+                            <input type="text" id="advanced1" placeholder="例如: 4.80 或 ?">
+                            <div class="error-message" id="advanced1Error"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="calculate-btn">计算维修结果</button>
+            </form>
+            
+            <div class="results" id="results1">
+                <h3>维修计算结果</h3>
+                <div class="result-item">
+                    <span class="result-label">维修后上限:</span>
+                    <span class="result-value" id="repairedMax1">-</span>
+                </div>
+                
+                <div class="repair-packages">
+                    <h4>各维修包消耗点数:</h4>
+                    <div class="package-item">
+                        <span class="package-name">自制维修包</span>
+                        <span class="package-consumption" id="selfMadeConsumption1">-</span>
+                    </div>
+                    <div class="package-item">
+                        <span class="package-name">标准维修包</span>
+                        <span class="package-consumption" id="standardConsumption1">-</span>
+                    </div>
+                    <div class="package-item">
+                        <span class="package-name">精密维修包</span>
+                        <span class="package-consumption" id="precisionConsumption1">-</span>
+                    </div>
+                    <div class="package-item">
+                        <span class="package-name">高级维修组合</span>
+                        <span class="package-consumption" id="advancedConsumption1">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: 装备类型计算 -->
+        <div class="tab-content" id="tab2">
+            <form id="calculatorForm2">
+                <div class="form-grid">
+                    <div class="form-section">
+                        <h3>装备信息</h3>
+                        <div class="input-group">
+                            <label for="itemType2">物品类别</label>
+                            <select id="itemType2">
+                                <option value="">请选择装备类型</option>
+                                <option value="头盔">头盔</option>
+                                <option value="护甲">护甲</option>
+                            </select>
+                            <div class="error-message" id="itemType2Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="currentLimit2">当前上限 (1-150, 最多1位小数)</label>
+                            <input type="number" id="currentLimit2" min="1" max="150" step="0.1" placeholder="例如: 95.5">
+                            <div class="error-message" id="currentLimit2Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="initialLimit2">初始上限 (1-150整数)</label>
+                            <input type="number" id="initialLimit2" min="1" max="150" step="1" placeholder="例如: 100">
+                            <div class="error-message" id="initialLimit2Error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>维修参数</h3>
+                        <div class="input-group">
+                            <label for="remaining2">剩余耐久 (0-150, 最多1位小数)</label>
+                            <input type="number" id="remaining2" min="0" max="150" step="0.1" placeholder="例如: 80.3">
+                            <div class="error-message" id="remaining2Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="loss2">维修损耗 (0-0.2, 最多2位小数)</label>
+                            <input type="number" id="loss2" min="0" max="0.2" step="0.01" placeholder="例如: 0.05">
+                            <div class="error-message" id="loss2Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="price2">维修单价 (≥1整数)</label>
+                            <input type="number" id="price2" min="1" step="1" placeholder="例如: 100">
+                            <div class="error-message" id="price2Error"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="calculate-btn">计算维修结果</button>
+            </form>
+            
+            <div class="results" id="results2">
+                <h3>维修计算结果</h3>
+                <div id="repairabilityCheck2"></div>
+                <div class="result-item">
+                    <span class="result-label">维修后耐久上限:</span>
+                    <span class="result-value" id="finalLimit2">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">预计维修花费:</span>
+                    <span class="result-value" id="finalCost2">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: 高级精确计算 -->
+        <div class="tab-content" id="tab3">
+            <form id="calculatorForm3">
+                <div class="form-grid">
+                    <div class="form-section">
+                        <h3>装备信息</h3>
+                        <div class="input-group">
+                            <label for="itemType3">物品类别</label>
+                            <select id="itemType3">
+                                <option value="">请选择装备类型</option>
+                                <option value="头盔">头盔</option>
+                                <option value="护甲">护甲</option>
+                            </select>
+                            <div class="error-message" id="itemType3Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="currentUpper3">当前上限 (1-150, 最多1位小数)</label>
+                            <input type="number" id="currentUpper3" min="1" max="150" step="0.1" placeholder="例如: 95.5">
+                            <div class="error-message" id="currentUpper3Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="initialUpper3">初始上限 (1-150整数)</label>
+                            <input type="number" id="initialUpper3" min="1" max="150" step="1" placeholder="例如: 100">
+                            <div class="error-message" id="initialUpper3Error"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>维修参数</h3>
+                        <div class="input-group">
+                            <label for="remainingDurability3">剩余耐久 (0-150, 最多1位小数)</label>
+                            <input type="number" id="remainingDurability3" min="0" max="150" step="0.1" placeholder="例如: 80.3">
+                            <div class="error-message" id="remainingDurability3Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="repairLoss3">维修损耗 (0-0.2, 最多2位小数)</label>
+                            <input type="number" id="repairLoss3" min="0" max="0.2" step="0.01" placeholder="例如: 0.05">
+                            <div class="error-message" id="repairLoss3Error"></div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label for="repairPrice3">维修单价 (>0整数)</label>
+                            <input type="number" id="repairPrice3" min="1" step="1" placeholder="例如: 100">
+                            <div class="error-message" id="repairPrice3Error"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="calculate-btn">计算维修结果</button>
+            </form>
+            
+            <div class="results" id="results3">
+                <h3>维修计算结果</h3>
+                <div id="repairabilityCheck3"></div>
+                <div class="result-item">
+                    <span class="result-label">维修后上限:</span>
+                    <span class="result-value" id="finalUpper3">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">维修花费:</span>
+                    <span class="result-value" id="repairCost3">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabIndex) {
+            // 移除所有活动状态
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 添加新的活动状态
+            document.querySelectorAll('.tab')[tabIndex].classList.add('active');
+            document.querySelectorAll('.tab-content')[tabIndex].classList.add('active');
+        }
+
+        class Calculator1 {
+            constructor() {
+                this.form = document.getElementById('calculatorForm1');
+                this.results = document.getElementById('results1');
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+                const inputs = this.form.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('blur', () => this.validateField(input));
+                    input.addEventListener('input', () => this.clearError(input));
+                });
+            }
+
+            validateField(input) {
+                const value = input.value.trim().replace('？', '?');
+                let isValid = true;
+                let errorMessage = '';
+
+                switch(input.id) {
+                    case 'initialMax1':
+                        if (!value || !Number.isInteger(Number(value)) || Number(value) < 1 || Number(value) > 150) {
+                            isValid = false;
+                            errorMessage = '必须为1-150的整数';
+                        }
+                        break;
+                        
+                    case 'currentMax1':
+                        const initialMax = Number(document.getElementById('initialMax1').value);
+                        const currentMaxValue = Number(value);
+                        if (!value || isNaN(currentMaxValue) || currentMaxValue > initialMax) {
+                            isValid = false;
+                            errorMessage = `不得超过${initialMax}且需一位小数`;
+                        }
+                        break;
+                        
+                    case 'remainingDurability1':
+                        const currentMax = Number(document.getElementById('currentMax1').value);
+                        const remainingValue = Number(value);
+                        if (!value || isNaN(remainingValue) || remainingValue > currentMax) {
+                            isValid = false;
+                            errorMessage = `不得超过${currentMax}且需一位小数`;
+                        }
+                        break;
+                        
+                    case 'repairLoss1':
+                        const repairLossValue = Number(value);
+                        if (!value || isNaN(repairLossValue) || repairLossValue < 0.01 || repairLossValue > 0.20) {
+                            isValid = false;
+                            errorMessage = '必须为0.01-0.20之间的两位小数';
+                        }
+                        break;
+                        
+                    case 'selfMade1':
+                    case 'standard1':
+                    case 'precision1':
+                    case 'advanced1':
+                        if (value !== '?' && value !== '') {
+                            const effValue = Number(value);
+                            if (isNaN(effValue) || effValue < 0.01 || effValue > 10) {
+                                isValid = false;
+                                errorMessage = '必须为0.01-10之间的两位小数或?';
+                            }
+                        }
+                        break;
+                }
+
+                this.showError(input, isValid ? '' : errorMessage);
+                return isValid;
+            }
+
+            showError(input, message) {
+                const errorElement = document.getElementById(input.id + 'Error');
+                if (message) {
+                    input.classList.add('error');
+                    errorElement.textContent = message;
+                    errorElement.style.display = 'block';
+                } else {
+                    input.classList.remove('error');
+                    errorElement.style.display = 'none';
+                }
+            }
+
+            clearError(input) {
+                input.classList.remove('error');
+                const errorElement = document.getElementById(input.id + 'Error');
+                errorElement.style.display = 'none';
+            }
+
+            handleSubmit(e) {
+                e.preventDefault();
+                
+                const inputs = this.form.querySelectorAll('input');
+                let allValid = true;
+                
+                inputs.forEach(input => {
+                    if (!this.validateField(input)) {
+                        allValid = false;
+                    }
+                });
+
+                if (!allValid) {
+                    alert('请检查输入数据的格式和范围');
+                    return;
+                }
+
+                this.calculate();
+            }
+
+            calculate() {
+                const initialMax = Number(document.getElementById('initialMax1').value);
+                const currentMax = Number(document.getElementById('currentMax1').value);
+                const remainingDurability = Number(document.getElementById('remainingDurability1').value);
+                const repairLoss = Number(document.getElementById('repairLoss1').value);
+
+                const repairPackages = [
+                    { name: 'selfMade1', displayName: '自制维修包' },
+                    { name: 'standard1', displayName: '标准维修包' },
+                    { name: 'precision1', displayName: '精密维修包' },
+                    { name: 'advanced1', displayName: '高级维修组合' }
+                ];
+
+                let repairedMax = 0;
+                
+                if (currentMax > 0) {
+                    const ratio = (currentMax - remainingDurability) / currentMax;
+                    const logTerm = Math.log10(currentMax / initialMax);
+                    repairedMax = currentMax - currentMax * ratio * (repairLoss - logTerm);
+                    repairedMax = Math.round(repairedMax * 10) / 10;
+                }
+
+                if (repairedMax <= 0) {
+                    document.getElementById('repairedMax1').textContent = '无法维修（维修后耐久≤0）';
+                    document.getElementById('repairedMax1').style.color = '#f44336';
+                } else {
+                    document.getElementById('repairedMax1').textContent = repairedMax.toFixed(1);
+                    document.getElementById('repairedMax1').style.color = '#4CAF50';
+                    
+                    repairPackages.forEach(pkg => {
+                        const efficiencyInput = document.getElementById(pkg.name).value.trim().replace('？', '?');
+                        let consumption;
+                        
+                        if (efficiencyInput === '?' || efficiencyInput === '') {
+                            consumption = '暂无数据';
+                        } else {
+                            const efficiency = Number(efficiencyInput);
+                            if (efficiency === 0) {
+                                consumption = '无效值';
+                            } else {
+                                const delta = repairedMax - remainingDurability;
+                                const points = delta / efficiency;
+                                consumption = points >= 0 ? Math.round(points).toString() : '无效值';
+                            }
+                        }
+                        
+                        document.getElementById(pkg.name + 'Consumption1').textContent = consumption;
+                    });
+                }
+
+                this.results.style.display = 'block';
+                this.results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        class Calculator2 {
+            constructor() {
+                this.form = document.getElementById('calculatorForm2');
+                this.results = document.getElementById('results2');
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+            }
+
+            handleSubmit(e) {
+                e.preventDefault();
+                this.calculate();
+            }
+
+            calculate() {
+                const itemType = document.getElementById('itemType2').value;
+                const currentLimit = Number(document.getElementById('currentLimit2').value);
+                const initialLimit = Number(document.getElementById('initialLimit2').value);
+                const remaining = Number(document.getElementById('remaining2').value);
+                const loss = Number(document.getElementById('loss2').value);
+                const price = Number(document.getElementById('price2').value);
+
+                // 验证输入
+                if (!itemType) {
+                    alert('请选择装备类型');
+                    return;
+                }
+
+                const currentInt = Math.floor(currentLimit);
+                const remainingInt = Math.floor(remaining);
+
+                // 维修判定
+                const repairabilityDiv = document.getElementById('repairabilityCheck2');
+                if ((itemType === "护甲" && currentInt < 10) || (itemType === "头盔" && currentInt < 5)) {
+                    repairabilityDiv.innerHTML = '<div class="error-result">不可维修</div>';
+                    document.getElementById('finalLimit2').textContent = '-';
+                    document.getElementById('finalCost2').textContent = '-';
+                } else {
+                    repairabilityDiv.innerHTML = '';
+                    
+                    try {
+                        const ratio = currentInt / initialLimit;
+                        const logTerm = Math.log10(ratio);
+                        const delta = currentInt - remaining;
+                        const adjustment = (loss - logTerm) * 1.25;
+                        const repaired = currentInt - delta * adjustment;
+                        
+                        const finalLimit = Math.max(Math.floor(repaired), 1);
+                        const durabilityGap = finalLimit - remainingInt + 1;
+                        const cost = Math.max(durabilityGap, 0) * price * 1.25;
+                        const finalCost = Math.round(cost);
+
+                        document.getElementById('finalLimit2').textContent = finalLimit;
+                        document.getElementById('finalCost2').textContent = finalCost;
+                    } catch (error) {
+                        repairabilityDiv.innerHTML = `<div class="error-result">计算错误: ${error.message}</div>`;
+                        document.getElementById('finalLimit2').textContent = '-';
+                        document.getElementById('finalCost2').textContent = '-';
+                    }
+                }
+
+                this.results.style.display = 'block';
+                this.results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        class Calculator3 {
+            constructor() {
+                this.form = document.getElementById('calculatorForm3');
+                this.results = document.getElementById('results3');
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+            }
+
+            handleSubmit(e) {
+                e.preventDefault();
+                this.calculate();
+            }
+
+            calculate() {
+                const itemType = document.getElementById('itemType3').value;
+                const currentUpper = Number(document.getElementById('currentUpper3').value);
+                const initialUpper = Number(document.getElementById('initialUpper3').value);
+                const remainingDurability = Number(document.getElementById('remainingDurability3').value);
+                const repairLoss = Number(document.getElementById('repairLoss3').value);
+                const repairPrice = Number(document.getElementById('repairPrice3').value);
+
+                if (!itemType) {
+                    alert('请选择装备类型');
+                    return;
+                }
+
+                const currentUpperProcessed = Math.floor(currentUpper);
+                const repairabilityDiv = document.getElementById('repairabilityCheck3');
+
+                if ((itemType === "护甲" && currentUpperProcessed < 10) || (itemType === "头盔" && currentUpperProcessed < 5)) {
+                    repairabilityDiv.innerHTML = '<div class="error-result">不可维修</div>';
+                    document.getElementById('finalUpper3').textContent = '-';
+                    document.getElementById('repairCost3').textContent = '-';
+                } else {
+                    repairabilityDiv.innerHTML = '';
+                    
+                    try {
+                        const term1 = (currentUpperProcessed - remainingDurability) / currentUpperProcessed;
+                        const logTerm = currentUpperProcessed / initialUpper;
+                        
+                        if (logTerm <= 0) {
+                            throw new Error("对数计算参数不合法");
+                        }
+                        
+                        const term2 = repairLoss - Math.log10(logTerm);
+                        const repairedUpper = currentUpperProcessed - currentUpperProcessed * term1 * term2;
+                        
+                        const finalUpper = Math.max(Math.floor(repairedUpper), 1);
+                        const remainingInt = Math.floor(remainingDurability);
+                        const repairCost = Math.max((finalUpper - remainingInt + 1) * repairPrice, 0);
+
+                        document.getElementById('finalUpper3').textContent = finalUpper;
+                        document.getElementById('repairCost3').textContent = repairCost;
+                    } catch (error) {
+                        repairabilityDiv.innerHTML = `<div class="error-result">计算错误: ${error.message}</div>`;
+                        document.getElementById('finalUpper3').textContent = '-';
+                        document.getElementById('repairCost3').textContent = '-';
+                    }
+                }
+
+                this.results.style.display = 'block';
+                this.results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // 初始化所有计算器
+        document.addEventListener('DOMContentLoaded', () => {
+            new Calculator1();
+            new Calculator2();
+            new Calculator3();
+        });
+    </script>
+</body>
+</html>
